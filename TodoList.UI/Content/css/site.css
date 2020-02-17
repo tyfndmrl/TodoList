@@ -1,0 +1,88 @@
+﻿.list-group-item {
+    position: relative;
+    padding-left: 20px;
+}
+
+    .list-group-item:hover {
+        padding-right: 60px;
+    }
+
+    .list-group-item:hover .icon {
+        cursor: pointer;
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        float: right;
+        background-size: 50%;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+    .list-group-item .icon.edit {
+        top: 3px;
+        right: 30px;
+        background-image: url(/Content/images/edit.svg);
+        background-color: #4CAF50;
+    }
+
+    .list-group-item .icon.delete {
+        top: 3px;
+        right: 0;
+        background-image: url(/Content/images/delete.svg);
+        background-color: #F44336;
+    }
+
+
+
+    .list-group-item .check {
+        cursor: pointer;
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        left: 3px;
+        top: 16px;
+        border: 1px solid;
+        border-radius: 100%;
+        transition: all .2s ease-out;
+    }
+
+        .list-group-item .check:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: -4px;
+            left: -4px;
+            background: url(/Content/images/checked.svg) no-repeat;
+            background-size: 100%;
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            transition: none;
+        }
+
+    .list-group-item:hover .check {
+        background-color: transparent !important;
+        width: 17px;
+        height: 17px;
+        top: 10px;
+        left: 0px;
+        border-radius: 4px;
+    }
+
+
+    .list-group-item.completed .check {
+        background: #4CAF50;
+        border-color: #4CAF50;
+    }
+
+    .list-group-item.completed:hover .check:before {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        top: -4px;
+        left: -4px;
+    }
+
+    .list-group-item.actived .check {
+        background: #F44336;
+        border-color: #F44336;
+    }

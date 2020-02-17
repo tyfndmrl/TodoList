@@ -1,0 +1,205 @@
+﻿@using TodoList.DTO.Models.Todo
+@using TodoList.DAL.Entities.Enums
+@model IEnumerable<TodoDto>
+@section head{
+    <link href="~/Content/css/site.css" rel="stylesheet" />
+    <style>
+        * {
+            font-family: 'Segoe UI', 'Open Sans', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+        }
+
+        .vertical-center {
+            min-height: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .desing {
+            max-width: 600px;
+            border-radius: 4px;
+            background: #263238;
+            padding: 20px;
+        }
+
+            .desing h1 {
+                color: white;
+            }
+
+        .todoList {
+            padding-bottom: 15px;
+            height: 500px;
+            max-height: 500px;
+            overflow: auto;
+            padding-right: 10px;
+        }
+
+            .todoList::-webkit-scrollbar {
+                width: 5px;
+                background-color: #263238;
+            }
+
+            .todoList::-webkit-scrollbar-thumb {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 100%;
+            }
+
+        .todoLeft {
+            max-width: 220px;
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+}
+
+<div class="vertical-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col desing">
+                <div class="row">
+                    <div class="col">
+                        <h1 class="text-center">Yapılacaklar Listesi</h1>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                            <div class="input-group mb-3">
+                                <input type="hidden" name="Id" id="hdnId" />
+                                <input type="text" class="form-control" name="Description" id="hdnDescription" placeholder="...">
+                                <input type="datetime-local" class="form-control col-4" name="DueDate" id="hdnDueDate" placeholder="...">
+                                <div class="input-group-append">
+                                    <button id="btnSave" class="btn btn-outline-success" type="submit">Kaydet</button>
+                                </div>
+                            </div>
+                        <ul class="list-group todoList">
+                            @{
+                                foreach (var item in Model)
+                                {
+                                    if (item.Status == Status.Active && item.DueDate < DateTime.Now)
+                                    {
+                                        <li class="list-group-item list-group-item-danger actived" data-id="@item.Id" data-date="@item.DueDate.ToString("yyyy-MM-ddThh:mm")">
+                                            <div class="check"></div>
+                                            <span>@item.Description</span><br/><span>@item.DueDate.ToString("dd.MM.yyyy HH:mm")</span>
+                                            <div class="icon edit"></div>
+                                            <div class="icon delete"></div>
+                                        </li>
+                                    }
+                                    else if (item.Status == Status.Complete)
+                                    {
+                                        <li class="list-group-item list-group-item-success completed" data-id="@item.Id" data-date="@item.DueDate.ToString("yyyy-MM-ddThh:mm")">
+                                            <div class="check"></div>
+                                            <span>@item.Description</span><br /><span>@item.DueDate.ToString("dd.MM.yyyy HH:mm")</span>
+                                            <div class="icon edit"></div>
+                                            <div class="icon delete"></div>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="list-group-item actived" data-id="@item.Id" data-date="@item.DueDate.ToString("yyyy-MM-ddThh:mm")">
+                                            <div class="check"></div>
+                                            <span>@item.Description</span><br /><span>@item.DueDate.ToString("dd.MM.yyyy HH:mm")</span>
+                                            <div class="icon edit"></div>
+                                            <div class="icon delete"></div>
+                                        </li>
+                                    }
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="expiredModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Bugun Yapılacaklar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul id="modalList" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.check').on('click', function () {
+                var $elm = $(this).parent();
+
+                $.post('/Home/CheckStatus', { Id: $elm.data('id'), Status: $elm.hasClass('actived') ? 2 : 1 }, function (x) {
+                    if (x.Success)
+                        $elm.toggleClass('actived').toggleClass('completed');
+                });
+
+            });
+
+            $('.delete').on('click', function () {
+                var $elm = $(this).parent();
+                $.post('/Home/DeleteTodo/' + $elm.data('id'), function (data) {
+                    if (data.Success)
+                        $elm.remove();
+                });
+
+            });
+
+            $('#btnSave').on('click', function () {
+                var model = {
+                    Id : $('#hdnId').val(),
+                    Description : $('#hdnDescription').val(),
+                    DueDate : $('#hdnDueDate').val()
+                };
+                $.post('/Home/AddOrUpdate', model, function (data) {
+                    if (data.Success)
+                        window.location.reload();
+                    else if(data.Error && data.Error.Fields)
+                        alert('Eksik alan bırakmayınız!')
+                });
+
+            });
+
+            $('.edit').on('click', function () {
+                var $elm = $(this).parent();
+                $('#hdnId').val($elm.data('id'));
+                $('#hdnDescription').val($elm.text().trim());
+                $('#hdnDueDate').val($elm.data('date'));
+
+            });
+
+            Expired();
+        });
+
+        function Expired() {
+            var $modalElm = $('#modalList')
+            $modalElm.find('li').remove();
+            $.get('/Home/OutDatedTodo', function (x) {
+                if (!x.Success)
+                    return;
+
+                $modalElm.append(modalDataMapping(x.Data));
+                if ($modalElm.find('li').length)
+                    $('#expiredModal').modal('show');
+                setTimeout(function () { Expired() }, 120000);
+            });
+        }
+
+        function modalDataMapping(models) {
+            return $.map(models,
+                function (o, i) {
+                    return `<li class="list-group-item d-flex justify-content-between align-items-center">${o.Description}<span class="badge badge-warning badge-pill">${moment(o.DueDate).format('DD.MM.YYYY HH:SS')}</span></li>`;
+                }).join('');
+        }
+    </script>
+}
